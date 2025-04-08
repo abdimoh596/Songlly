@@ -30,9 +30,12 @@ class SpotifyAuthService {
   }
 
   Future<Map<String, dynamic>?> getUserProfile() async {
+    // Get the access token from storage
     final tokens = await AuthTokens.readFromStorage();
+    // If no tokens are found, return null
     if (tokens == null) return null;
 
+    // use access token to get user profile
     final response = await http.get(
       Uri.parse(APIPath.getCurrentUser),
       headers: {
@@ -40,9 +43,28 @@ class SpotifyAuthService {
       },
     );
 
+    // if the access token is expired, refresh it and try again
     if (response.statusCode == 200) {
       return json.decode(response.body);
-    } else {
+    } 
+    else if (response.statusCode == 401) {
+      AuthTokens.clearStorage();
+      getAccessToken();
+      final tokens1 = await AuthTokens.readFromStorage();
+      if (tokens1 == null) return null;
+      final response1 = await http.get(
+      Uri.parse(APIPath.getCurrentUser),
+      headers: {
+        'Authorization': 'Bearer ${tokens1.accessToken}',
+        }
+      );
+      if (response1.statusCode == 200) {
+        return json.decode(response1.body);
+      } else {
+        throw Exception('Failed to fetch profile');
+      }
+    } 
+    else {
       throw Exception('Failed to fetch profile');
     }
   }
