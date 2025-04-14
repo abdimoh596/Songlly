@@ -1,5 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'spotify_auth_api.dart';
+import '../services/spotify_auth_api.dart';
 
 class AuthTokens {
   AuthTokens(this.accessToken, this.refreshToken);

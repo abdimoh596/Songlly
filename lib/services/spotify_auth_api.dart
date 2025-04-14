@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
-import 'auth_tokens.dart';
-import 'api_path.dart';
+import '../models/auth_tokens.dart';
+import '../models/api_path.dart';
 
 class SpotifyAuthApi {
   static final clientId = dotenv.env['SPOTIFY_CLIENT_ID'];

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'login_screen.dart';
+import 'package:songlly/screens/home_screen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../services/spotify_auth_service.dart';
+import '../models/global_music_data.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -10,6 +13,12 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class WelcomeScreenState extends State<WelcomeScreen> {
+  
+  final spotifyAuth = SpotifyAuthService(
+    clientId: dotenv.env['SPOTIFY_CLIENT_ID'],
+    clientSecret: dotenv.env['SPOTIFY_CLIENT_SECRET'],
+  );
+
   final PageController _pageController = PageController();
   int currentPage = 0;
 
@@ -132,9 +141,13 @@ class WelcomeScreenState extends State<WelcomeScreen> {
             if (isLastPage)
               ElevatedButton(
                 onPressed: () {
+                  GlobalMusicData.instance.clearAll();
+                  spotifyAuth.getUserSavedSongs();
+                  spotifyAuth.getUserTopArtists();
+                  spotifyAuth.getUserTopTracks();
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
                   );
                 },
                 style: ElevatedButton.styleFrom(
