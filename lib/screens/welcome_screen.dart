@@ -140,15 +140,15 @@ class WelcomeScreenState extends State<WelcomeScreen> {
             const SizedBox(height: 30),
             if (isLastPage)
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   GlobalMusicData.instance.clearAll();
-                  spotifyAuth.getUserSavedSongs();
-                  spotifyAuth.getUserTopArtists();
-                  spotifyAuth.getUserTopTracks();
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HomeScreen()),
-                  );
+                  await spotifyAuth.getAccessToken();
+                  if (mounted) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => const HomeScreen()),
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,

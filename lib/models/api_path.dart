@@ -20,16 +20,18 @@ class APIPath {
 
   static String requestToken = 'https://accounts.spotify.com/api/token';
   static String getCurrentUser = 'https://api.spotify.com/v1/me';
-  static String getSavedSongs = 'https://api.spotify.com/v1/me/tracks';
-  static String getTopTracks = 'https://api.spotify.com/v1/me/top/tracks';
-  static String getTopArtists = 'https://api.spotify.com/v1/me/top/artists';
-  static String getArtistAlbums(String? artistId) =>
-      'https://api.spotify.com/v1/artists/$artistId/albums';
-  static String getArtistsTopTracks(String? artistId) =>
-      'https://api.spotify.com/v1/artists/$artistId/top-tracks';
-  static String getAlbumTracks(String? albumId) =>
-      'https://api.spotify.com/v1/albums/$albumId/tracks';
-  static String getNewReleases = 'https://api.spotify.com/v1/browse/new-releases';
+  static String getSavedSongs(int? offset) => 
+      'https://api.spotify.com/v1/me/tracks?offset=$offset&limit=2';
+  static String getTopTracks(int? offset) => 
+      'https://api.spotify.com/v1/me/top/tracks?offset=$offset&limit=2';
+  static String getTopArtists(int? offset) => 
+      'https://api.spotify.com/v1/me/top/artists?offset=$offset&limit=2';
+  static String getArtistAlbums(String? artistId, int? offset) =>
+      'https://api.spotify.com/v1/artists/$artistId/albums?offset=$offset&limit=1';
+  static String getArtistsTopTracks(String? artistId, int? offset) =>
+      'https://api.spotify.com/v1/artists/$artistId/top-tracks?offset=$offset&limit=1';
+  static String getAlbumTracks(String? albumId, int? offset) =>
+      'https://api.spotify.com/v1/albums/$albumId/tracks?offset=$offset&limit=1';
   static String play = 'https://api.spotify.com/v1/me/player/play';
   static String pause = 'https://api.spotify.com/v1/me/player/pause';
   static String player = 'https://api.spotify.com/v1/me/player';

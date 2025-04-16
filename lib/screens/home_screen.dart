@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/spotify_auth_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import '../models/global_music_data.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,59 +10,81 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  bool setupCompleted = false;
+  bool isLoading = false;
+  String? userDisplayName;
 
   final spotifyAuth = SpotifyAuthService(
     clientId: dotenv.env['SPOTIFY_CLIENT_ID'],
     clientSecret: dotenv.env['SPOTIFY_CLIENT_SECRET'],
   );
 
-  String? userName;
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color.fromRGBO(255, 221, 197, 1.0),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // Welcome message in top-left
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                'Welcome, ${userName ?? 'user'}!',
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-            ),
-            // Center button
-            Center(
-              child: ElevatedButton(
-                onPressed: () async {
-                  print(GlobalMusicData.instance.savedTracks.length);
-                  print(GlobalMusicData.instance.artists.length);
-                  spotifyAuth.getArtistAlbums();
-                  spotifyAuth.getArtistsTopTracks();
-                  print(GlobalMusicData.instance.recommendedTracks.length);
-                  print(GlobalMusicData.instance.albums.length);                  
-                  String? name = await spotifyAuth.getUserName();
-                  setState(() {
-                    userName = name;
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromRGBO(103, 8, 99, 1.0),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'get',
-                  style: TextStyle(fontSize: 20, color: Colors.white),
-                ),
-              ),
-            ),
-          ],
+    final retryAfter = spotifyAuth.retryAfter;
+
+    if (retryAfter != null) {
+      return Scaffold(
+        body: Center(
+          child: Text(
+            spotifyAuth.retryAfterTime(retryAfter),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
         ),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Songly')),
+      body: Center(
+        child: isLoading
+            ? const CircularProgressIndicator()
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (!setupCompleted)
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (spotifyAuth.retryAfter != null) {
+                          setState(() {}); // Show retry screen if needed
+                          return;
+                        }
+                        String? name = await spotifyAuth.getUserName();
+                        setState(() => isLoading = true);
+                        await spotifyAuth.preRecommend(); // Await setup
+                        setState(()  {
+                          setupCompleted = true;
+                          isLoading = false;
+                          userDisplayName = name;
+                        });
+                      },
+                      child: const Text('Setup'),
+                    ),
+                  if (setupCompleted && userDisplayName != null) ...[
+                    Text(
+                      'Welcome, $userDisplayName!',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                  ElevatedButton(
+                    onPressed: setupCompleted
+                        ? () async {
+                            if (spotifyAuth.retryAfter != null) {
+                              setState(() {}); // Show retry screen if needed
+                              return;
+                            }
+                            await spotifyAuth.recommend();
+                          }
+                        : null,
+                    child: const Text('Recommend'),
+                  ),
+                ],
+              ),
       ),
     );
   }

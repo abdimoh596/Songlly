@@ -10,6 +10,7 @@ import '../models/album.dart';
 import '../models/track.dart';
 import '../models/artist.dart';
 import '../models/global_music_data.dart';
+import 'dart:math';
 
 
 class SpotifyAuthService {
@@ -18,9 +19,38 @@ class SpotifyAuthService {
   final String redirectUri = 'songly://callback'; // Custom scheme set in Spotify Dashboard
   late final String state;
 
+  int? savedTracksTotal;
+  int? topArtistsTotal;
+  int? topTracksTotal;
+  int? artistAlbumsTotal;
+  int? artistTopTracksTotal;
+  int? albumTracksTotal;
+  int? retryAfter;
+  
+
   SpotifyAuthService({this.clientId, this.clientSecret}) {
     state = DateTime.now().millisecondsSinceEpoch.toString();
   }
+
+  int getRandomInt(int n) {
+    if (n <= 0) return 0;
+    final random = Random();
+    int seed = random.nextInt(n);
+    if (n <= 2 || seed < 2) {
+      return random.nextInt(n);
+    }
+    return seed - 2;
+  }
+
+  int getRandomInt2(int n) {
+    if (n <= 0) return 0;
+    final random = Random();
+    int seed = random.nextInt(n);
+    if (n <= 1 || seed < 1) {
+      return random.nextInt(n);
+    }
+    return seed - 1;
+  }  
 
   Future<String?> getAccessToken() async {
     final saved = await AuthTokens.readFromStorage();
@@ -88,13 +118,21 @@ class SpotifyAuthService {
       },
     );
 
+    if (response.statusCode == 429) {
+      if (response.headers['retry-after'] != null) {
+        retryAfter = int.parse(response.headers['retry-after']!);
+      }
+      retryAfter = null;
+    }
     // if the access token is expired, refresh it and try again
     if (response.statusCode == 200) {
+      retryAfter = null;
       return json.decode(response.body);
     } 
     else if (response.statusCode == 401) {
+      retryAfter = null;
       AuthTokens.clearStorage();
-      getAccessToken();
+      await getAccessToken();
       final tokens1 = await AuthTokens.readFromStorage();
       if (tokens1 == null) return null;
       final response1 = await http.get(
@@ -103,7 +141,14 @@ class SpotifyAuthService {
         'Authorization': 'Bearer ${tokens1.accessToken}',
         }
       );
+      if (response1.statusCode == 429) {
+        if (response1.headers['retry-after'] != null) {
+          retryAfter = int.parse(response1.headers['retry-after']!);
+        }
+        retryAfter = null;
+      }
       if (response1.statusCode == 200) {
+        retryAfter = null;
         return json.decode(response1.body);
       } else {
         throw Exception('Failed to fetch profile');
@@ -132,29 +177,45 @@ class SpotifyAuthService {
 
     // use access token to get user profile
     final response = await http.get(
-      Uri.parse(APIPath.getSavedSongs),
+      Uri.parse(APIPath.getSavedSongs(getRandomInt(savedTracksTotal ?? 0))),
       headers: {
         'Authorization': 'Bearer ${tokens.accessToken}',
       },
     );
 
+    if (response.statusCode == 429) {
+      if (response.headers['retry-after'] != null) {
+        retryAfter = int.parse(response.headers['retry-after']!);
+      }
+      retryAfter = null;
+    }
     // if the access token is expired, refresh it and try again
     if (response.statusCode == 200) {
+      retryAfter = null;
       processSavedSongsResponse(json.decode(response.body));
       return json.decode(response.body);
     } 
     else if (response.statusCode == 401) {
+      retryAfter = null;
       AuthTokens.clearStorage();
-      getAccessToken();
+      await getAccessToken();
       final tokens1 = await AuthTokens.readFromStorage();
       if (tokens1 == null) return null;
       final response1 = await http.get(
-      Uri.parse(APIPath.getSavedSongs),
+      Uri.parse(APIPath.getSavedSongs(getRandomInt(savedTracksTotal ?? 0))),
       headers: {
         'Authorization': 'Bearer ${tokens1.accessToken}',
         }
       );
+
+      if (response1.statusCode == 429) {
+        if (response1.headers['retry-after'] != null) {
+          retryAfter = int.parse(response1.headers['retry-after']!);
+        }
+        retryAfter = null;
+      }
       if (response1.statusCode == 200) {
+        retryAfter = null;
         processSavedSongsResponse(json.decode(response1.body));
         return json.decode(response1.body);
       } else {
@@ -167,6 +228,7 @@ class SpotifyAuthService {
   }
 
   void processSavedSongsResponse(Map<String, dynamic> data) {
+    savedTracksTotal = data['total'];
     final items = data['items'] as List;
 
     for (final item in items) {
@@ -196,29 +258,44 @@ class SpotifyAuthService {
 
     // use access token to get user profile
     final response = await http.get(
-      Uri.parse(APIPath.getTopArtists),
+      Uri.parse(APIPath.getTopArtists(getRandomInt(topArtistsTotal ?? 0))),
       headers: {
         'Authorization': 'Bearer ${tokens.accessToken}',
       },
     );
-
+    if (response.statusCode == 429) {
+      if (response.headers['retry-after'] != null) {
+        retryAfter = int.parse(response.headers['retry-after']!);
+      }
+      retryAfter = null;
+    }
     // if the access token is expired, refresh it and try again
     if (response.statusCode == 200) {
+      retryAfter = null;
       processTopArtistsResponse(json.decode(response.body));
       return json.decode(response.body);
     } 
     else if (response.statusCode == 401) {
+      retryAfter = null;
       AuthTokens.clearStorage();
-      getAccessToken();
+      await getAccessToken();
       final tokens1 = await AuthTokens.readFromStorage();
       if (tokens1 == null) return null;
       final response1 = await http.get(
-      Uri.parse(APIPath.getTopArtists),
+      Uri.parse(APIPath.getTopArtists(getRandomInt(topArtistsTotal ?? 0))),
       headers: {
         'Authorization': 'Bearer ${tokens1.accessToken}',
         }
       );
+
+      if (response1.statusCode == 429) {
+        if (response1.headers['retry-after'] != null) {
+          retryAfter = int.parse(response1.headers['retry-after']!);
+        }
+        retryAfter = null;
+      }
       if (response1.statusCode == 200) {
+        retryAfter = null;
         processTopArtistsResponse(json.decode(response1.body));
         return json.decode(response1.body);
       } else {
@@ -231,6 +308,7 @@ class SpotifyAuthService {
   }
 
   void processTopArtistsResponse(Map<String, dynamic> data) {
+    topArtistsTotal = data['total'];
     final items = data['items'] as List;
 
     for (final artistJson in items) {
@@ -247,29 +325,45 @@ class SpotifyAuthService {
 
     // use access token to get user profile
     final response = await http.get(
-      Uri.parse(APIPath.getTopTracks),
+      Uri.parse(APIPath.getTopTracks(getRandomInt(topTracksTotal ?? 0))),
       headers: {
         'Authorization': 'Bearer ${tokens.accessToken}',
       },
     );
 
+    if (response.statusCode == 429) {
+      if (response.headers['retry-after'] != null) {
+        retryAfter = int.parse(response.headers['retry-after']!);
+      }
+      retryAfter = null;
+    }
     // if the access token is expired, refresh it and try again
     if (response.statusCode == 200) {
+      retryAfter = null;
       processTopTracksResponse(json.decode(response.body));
       return json.decode(response.body);
     } 
     else if (response.statusCode == 401) {
+      retryAfter = null;
       AuthTokens.clearStorage();
-      getAccessToken();
+      await getAccessToken();
       final tokens1 = await AuthTokens.readFromStorage();
       if (tokens1 == null) return null;
       final response1 = await http.get(
-      Uri.parse(APIPath.getTopTracks),
+      Uri.parse(APIPath.getTopTracks(getRandomInt(topTracksTotal ?? 0))),
       headers: {
         'Authorization': 'Bearer ${tokens1.accessToken}',
         }
       );
+
+      if (response1.statusCode == 429) {
+        if (response1.headers['retry-after'] != null) {
+          retryAfter = int.parse(response1.headers['retry-after']!);
+        }
+        retryAfter = null;
+      }
       if (response1.statusCode == 200) {
+        retryAfter = null;
         processTopTracksResponse(json.decode(response1.body));
         return json.decode(response1.body);
       } else {
@@ -282,6 +376,7 @@ class SpotifyAuthService {
   }
 
   void processTopTracksResponse(Map<String, dynamic> data) {
+    topTracksTotal = data['total'];
     final items = data['items'] as List;
 
     for (final trackJson in items) {
@@ -307,16 +402,24 @@ class SpotifyAuthService {
     // If no tokens are found, return null
     if (tokens == null) throw Exception('No access token found');
 
-
     for (final artist in GlobalMusicData.instance.artists) {
       final response = await http.get(
-        Uri.parse(APIPath.getArtistAlbums(artist.id)),
+        Uri.parse(APIPath.getArtistAlbums(artist.id, getRandomInt2(artistAlbumsTotal ?? 0))),
         headers: {
           'Authorization': 'Bearer ${tokens.accessToken}',
         },
       );
+
+      if (response.statusCode == 429) {
+        if (response.headers['retry-after'] != null) {
+          retryAfter = int.parse(response.headers['retry-after']!);
+        }
+        retryAfter = null;
+      }
       // if the access token is expired, refresh it and try again
       if (response.statusCode == 200) {
+        retryAfter = null;
+        artistAlbumsTotal = json.decode(response.body)['total'];
         final Map<String, dynamic> data = json.decode(response.body);
         final List<dynamic> items = data['items'];
 
@@ -326,18 +429,27 @@ class SpotifyAuthService {
         }
       } 
       else if (response.statusCode == 401) {
+        retryAfter = null;
         AuthTokens.clearStorage();
-        getAccessToken();
+        await getAccessToken();
         final tokens1 = await AuthTokens.readFromStorage();
         if (tokens1 == null) throw Exception('No access token found');
         final response1 = await http.get(
-        Uri.parse(APIPath.getArtistAlbums(artist.id)),
+        Uri.parse(APIPath.getArtistAlbums(artist.id, getRandomInt2(artistAlbumsTotal ?? 0))),
         headers: {
           'Authorization': 'Bearer ${tokens1.accessToken}',
           }
         );
 
+        if (response1.statusCode == 429) {
+          if (response1.headers['retry-after'] != null) {
+            retryAfter = int.parse(response1.headers['retry-after']!);
+          }
+          retryAfter = null;
+        }
         if (response1.statusCode == 200) {
+          retryAfter = null;
+          artistAlbumsTotal = json.decode(response1.body)['total'];
           final Map<String, dynamic> data = json.decode(response.body);
           final List<dynamic> items = data['items'];
 
@@ -362,14 +474,23 @@ class SpotifyAuthService {
 
     for (final artist in GlobalMusicData.instance.artists) {
       final response = await http.get(
-        Uri.parse(APIPath.getArtistsTopTracks(artist.id)),
+        Uri.parse(APIPath.getArtistsTopTracks(artist.id, getRandomInt2(artistTopTracksTotal ?? 0))),
         headers: {
           'Authorization': 'Bearer ${tokens.accessToken}',
         },
       );
 
+      if (response.statusCode == 429) {
+        if (response.headers['retry-after'] != null) {
+          retryAfter = int.parse(response.headers['retry-after']!);
+        }
+        retryAfter = null;
+      }
+
       // if the access token is expired, refresh it and try again
       if (response.statusCode == 200) {
+        retryAfter = null;
+        artistTopTracksTotal = json.decode(response.body)['total'];
         final Map<String, dynamic> data = json.decode(response.body);
         final List<dynamic> tracks = data['tracks'];
 
@@ -379,18 +500,28 @@ class SpotifyAuthService {
         }
       } 
       else if (response.statusCode == 401) {
+        retryAfter = null;
         AuthTokens.clearStorage();
-        getAccessToken();
+        await getAccessToken();
         final tokens1 = await AuthTokens.readFromStorage();
         if (tokens1 == null) throw Exception('No access token found');
         final response1 = await http.get(
-        Uri.parse(APIPath.getArtistsTopTracks(artist.id)),
+        Uri.parse(APIPath.getArtistsTopTracks(artist.id, getRandomInt2(artistTopTracksTotal ?? 0))),
         headers: {
           'Authorization': 'Bearer ${tokens1.accessToken}',
           }
         );
 
+        if (response1.statusCode == 429) {
+          if (response1.headers['retry-after'] != null) {
+            retryAfter = int.parse(response1.headers['retry-after']!);
+          }
+          retryAfter = null;
+        }
+
         if (response1.statusCode == 200) {
+          retryAfter = null;
+          artistTopTracksTotal = json.decode(response1.body)['total'];
           final Map<String, dynamic> data = json.decode(response.body);
           final List<dynamic> tracks = data['tracks'];
 
@@ -404,5 +535,105 @@ class SpotifyAuthService {
       }
       await Future.delayed(Duration(milliseconds: 300));
     }
+  }
+
+  Future<void> getAlbumTracks() async {
+    // Get the access token from storage
+    final tokens = await AuthTokens.readFromStorage();
+    // If no tokens are found, return null
+    if (tokens == null) throw Exception('No access token found');
+
+    for (final album in List.from(GlobalMusicData.instance.albums)) {
+      final response = await http.get(
+        Uri.parse(APIPath.getAlbumTracks(album.id, getRandomInt2(albumTracksTotal ?? 0))),
+        headers: {
+          'Authorization': 'Bearer ${tokens.accessToken}',
+        },
+      );
+
+      if (response.statusCode == 429) {
+        if (response.headers['retry-after'] != null) {
+          retryAfter = int.parse(response.headers['retry-after']!);
+        }
+        retryAfter = null;
+      }
+      // if the access token is expired, refresh it and try again
+      if (response.statusCode == 200) {
+        retryAfter = null;
+        albumTracksTotal = json.decode(response.body)['total'];
+        final Map<String, dynamic> data = json.decode(response.body);
+        final List<dynamic> items = data['items'];
+
+        for (var item in items) {
+          item['album'] = {'id': album.id};
+          Track track = Track.fromJson(item);
+          GlobalMusicData.instance.recommendedTracks.add(track);
+        }
+      } 
+      else if (response.statusCode == 401) {
+        retryAfter = null;
+        AuthTokens.clearStorage();
+        await getAccessToken();
+        final tokens1 = await AuthTokens.readFromStorage();
+        if (tokens1 == null) throw Exception('No access token found');
+        final response1 = await http.get(
+        Uri.parse(APIPath.getAlbumTracks(album.id, getRandomInt2(albumTracksTotal ?? 0))),
+        headers: {
+          'Authorization': 'Bearer ${tokens1.accessToken}',
+          }
+        );
+
+        if (response1.statusCode == 429) {
+          if (response1.headers['retry-after'] != null) {
+            retryAfter = int.parse(response1.headers['retry-after']!);
+          }
+          retryAfter = null;
+        }
+        if (response1.statusCode == 200) {
+          retryAfter = null;
+          albumTracksTotal = json.decode(response1.body)['total'];
+          final Map<String, dynamic> data = json.decode(response.body);
+          final List<dynamic> items = data['items'];
+
+          for (var item in items) {
+            item['album'] = {'id': album.id};
+            Track track = Track.fromJson(item);
+            GlobalMusicData.instance.recommendedTracks.add(track);
+          }
+        } else {
+          throw Exception('Failed to fetch artist top tracks');
+        }
+      }
+      await Future.delayed(Duration(milliseconds: 300));
+    }
+  }
+  Future<void> preRecommend() {
+    GlobalMusicData.instance.clearAll();
+    getUserSavedSongs();
+    getUserTopArtists();
+    getUserTopTracks();
+    return Future.delayed(Duration(milliseconds: 0));
+  }
+
+  Future<void> recommend() {
+    getArtistAlbums();
+    getArtistsTopTracks();
+    getAlbumTracks();
+    return Future.delayed(Duration(milliseconds: 0));
+  }
+  String retryAfterTime(int retryAfterSeconds) {
+    int days = retryAfterSeconds ~/ (24 * 3600);
+    int hours = (retryAfterSeconds % (24 * 3600)) ~/ 3600;
+    int minutes = (retryAfterSeconds % 3600) ~/ 60;
+    int seconds = retryAfterSeconds % 60;
+
+    List<String> parts = [];
+
+    if (days > 0) parts.add('$days day${days == 1 ? '' : 's'}');
+    if (hours > 0) parts.add('$hours hour${hours == 1 ? '' : 's'}');
+    if (minutes > 0) parts.add('$minutes minute${minutes == 1 ? '' : 's'}');
+    if (seconds > 0) parts.add('$seconds second${seconds == 1 ? '' : 's'}');
+
+    return parts.isNotEmpty ? parts.join(', ') : '0 seconds';
   }
 }

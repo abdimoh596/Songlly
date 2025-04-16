@@ -22,6 +22,5 @@ class GlobalMusicData {
     artists.clear();
     albums.clear();
     savedTracks.clear();
-    recommendedTracks.clear();
   }
 }

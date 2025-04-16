@@ -24,7 +24,7 @@ class AuthTokens {
       await storage.write(key: accessTokenKey, value: accessToken);
       await storage.write(key: refreshTokenKey, value: refreshToken);
     } catch (e) {
-      print(e);
+      throw Exception("Failed to save tokens: $e");
     }
   }
 
