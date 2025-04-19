@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:songlly/screens/music_swipe_screen.dart';
 import '../services/spotify_auth_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -10,7 +11,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  bool setupCompleted = false;
+  bool setup1Completed = false;
+  bool setup2Completed = false;
   bool isLoading = false;
   String? userDisplayName;
 
@@ -36,55 +38,107 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Songly')),
-      body: Center(
-        child: isLoading
-            ? const CircularProgressIndicator()
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (!setupCompleted)
-                    ElevatedButton(
-                      onPressed: () async {
-                        if (spotifyAuth.retryAfter != null) {
-                          setState(() {}); // Show retry screen if needed
-                          return;
-                        }
-                        String? name = await spotifyAuth.getUserName();
-                        setState(() => isLoading = true);
-                        await spotifyAuth.preRecommend(); // Await setup
-                        setState(()  {
-                          setupCompleted = true;
-                          isLoading = false;
-                          userDisplayName = name;
-                        });
-                      },
-                      child: const Text('Setup'),
-                    ),
-                  if (setupCompleted && userDisplayName != null) ...[
-                    Text(
-                      'Welcome, $userDisplayName!',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-                  ElevatedButton(
-                    onPressed: setupCompleted
-                        ? () async {
-                            if (spotifyAuth.retryAfter != null) {
-                              setState(() {}); // Show retry screen if needed
-                              return;
-                            }
-                            await spotifyAuth.recommend();
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color.fromRGBO(253, 181, 130, 1), Color.fromRGBO(255, 245, 237, 1.0)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Center(
+          child: isLoading
+              ? const CircularProgressIndicator(color: Colors.white)
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.music_note, color: Color.fromRGBO(121, 16, 83, 1.0), size: 100),
+                    const SizedBox(height: 25),
+                    if (!setup1Completed)
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (spotifyAuth.retryAfter != null) {
+                            setState(() {});
+                            return;
                           }
-                        : null,
-                    child: const Text('Recommend'),
-                  ),
-                ],
-              ),
+                          setState(() => isLoading = true);
+                          String? name = await spotifyAuth.getUserName();
+                          await spotifyAuth.preRecommend();
+                          setState(() {
+                            setup1Completed = true;
+                            isLoading = false;
+                            userDisplayName = name;
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color.fromRGBO(255, 145, 36, 1.0),
+                          foregroundColor: Color.fromRGBO(121, 16, 83, 1.0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                        ),
+                        child: const Text('Setup 1', style: TextStyle(fontSize: 18)),
+                      ),
+                    if (setup1Completed && userDisplayName != null) ...[
+                      const SizedBox(height: 15),
+                      Text(
+                        'Hi, $userDisplayName!',
+                        style: const TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w600,
+                          color: Color.fromRGBO(121, 16, 83, 1.0),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: () async {
+                          setState(() => isLoading = true);
+                          await spotifyAuth.recommend();
+                          setState(() {
+                            setup2Completed = true;
+                            isLoading = false;
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color.fromRGBO(255, 145, 36, 1.0),
+                          foregroundColor: Color.fromRGBO(121, 16, 83, 1.0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                        ),
+                        child: const Text('Setup 2', style: TextStyle(fontSize: 18)),
+                      ),
+                    ],
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: (setup1Completed && setup2Completed)
+                          ? () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const MusicSwipeScreen(),
+                                ),
+                              );
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.greenAccent,
+                        foregroundColor: Colors.black,
+                        disabledBackgroundColor: Colors.grey[400],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                      ),
+                      child: const Text('Recommend', style: TextStyle(fontSize: 18)),
+                    ),
+                  ],
+                ),
+        ),
       ),
     );
   }

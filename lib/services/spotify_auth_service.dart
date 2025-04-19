@@ -636,4 +636,283 @@ class SpotifyAuthService {
 
     return parts.isNotEmpty ? parts.join(', ') : '0 seconds';
   }
+
+  Future<String?> fetchAlbumImageUrl(String albumId) async {
+    // Get the access token from storage
+    final tokens = await AuthTokens.readFromStorage();
+    // If no tokens are found, return null
+    if (tokens == null) return null;
+
+    // use access token to get user profile
+    final response = await http.get(
+      Uri.parse('https://api.spotify.com/v1/albums/$albumId'),
+      headers: {
+        'Authorization': 'Bearer ${tokens.accessToken}',
+      },
+    );
+
+    if (response.statusCode == 429) {
+      if (response.headers['retry-after'] != null) {
+        retryAfter = int.parse(response.headers['retry-after']!);
+      }
+      retryAfter = null;
+    }
+    // if the access token is expired, refresh it and try again
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final images = data['images'];
+      if (images != null && images.isNotEmpty) {
+        return images[0]['url']; // Typically 640x640
+      }
+    } 
+    else if (response.statusCode == 401) {
+      retryAfter = null;
+      AuthTokens.clearStorage();
+      await getAccessToken();
+      final tokens1 = await AuthTokens.readFromStorage();
+      if (tokens1 == null) return null;
+      final response1 = await http.get(
+      Uri.parse('https://api.spotify.com/v1/albums/$albumId'),
+      headers: {
+        'Authorization': 'Bearer ${tokens1.accessToken}',
+        }
+      );
+
+      if (response1.statusCode == 429) {
+        if (response1.headers['retry-after'] != null) {
+          retryAfter = int.parse(response1.headers['retry-after']!);
+        }
+        retryAfter = null;
+      }
+      if (response1.statusCode == 200) {
+        final data = json.decode(response.body);
+        final images = data['images'];
+        if (images != null && images.isNotEmpty) {
+          return images[0]['url']; // Typically 640x640
+        }
+      } else {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  Future<List<String?>> getArtistName(Track track) async {
+    String artistIds = track.artistIds.join(',');
+    // Get the access token from storage
+    final tokens = await AuthTokens.readFromStorage();
+    // If no tokens are found, return null
+    if (tokens == null) return [];
+
+    // use access token to get user profile
+    final response = await http.get(
+      Uri.parse('https://api.spotify.com/v1/artists?ids=$artistIds'),
+      headers: {
+        'Authorization': 'Bearer ${tokens.accessToken}',
+      },
+    );
+
+    if (response.statusCode == 429) {
+      if (response.headers['retry-after'] != null) {
+        retryAfter = int.parse(response.headers['retry-after']!);
+      }
+      retryAfter = null;
+    }
+    // if the access token is expired, refresh it and try again
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> json = jsonDecode(response.body);
+      final List<dynamic> artistsJson = json['artists'];
+      return artistsJson.map<String>((artist) => artist['name'] as String).toList();
+    } 
+    else if (response.statusCode == 401) {
+      retryAfter = null;
+      AuthTokens.clearStorage();
+      await getAccessToken();
+      final tokens1 = await AuthTokens.readFromStorage();
+      if (tokens1 == null) return [];
+      final response1 = await http.get(
+      Uri.parse('https://api.spotify.com/v1/artists?ids=$artistIds'),
+      headers: {
+        'Authorization': 'Bearer ${tokens1.accessToken}',
+        }
+      );
+
+      if (response1.statusCode == 429) {
+        if (response1.headers['retry-after'] != null) {
+          retryAfter = int.parse(response1.headers['retry-after']!);
+        }
+        retryAfter = null;
+      }
+      if (response1.statusCode == 200) {
+        final Map<String, dynamic> json = jsonDecode(response.body);
+        final List<dynamic> artistsJson = json['artists'];
+        return artistsJson.map<String>((artist) => artist['name'] as String).toList();
+      } else {
+        return [];
+      }
+    }
+    return [];
+  }
+
+  Future<String> getAlbumName(Track track) async {
+    // Get the access token from storage
+    final tokens = await AuthTokens.readFromStorage();
+    // If no tokens are found, return null
+    if (tokens == null) return "";
+
+    // use access token to get user profile
+    final response = await http.get(
+      Uri.parse('https://api.spotify.com/v1/albums/${track.albumId}'),
+      headers: {
+        'Authorization': 'Bearer ${tokens.accessToken}',
+      },
+    );
+
+    if (response.statusCode == 429) {
+      if (response.headers['retry-after'] != null) {
+        retryAfter = int.parse(response.headers['retry-after']!);
+      }
+      retryAfter = null;
+    }
+    // if the access token is expired, refresh it and try again
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> json = jsonDecode(response.body);
+      return json['name'] as String;
+    } 
+    else if (response.statusCode == 401) {
+      retryAfter = null;
+      AuthTokens.clearStorage();
+      await getAccessToken();
+      final tokens1 = await AuthTokens.readFromStorage();
+      if (tokens1 == null) return "";
+      final response1 = await http.get(
+      Uri.parse('https://api.spotify.com/v1/albums/${track.albumId}'),
+      headers: {
+        'Authorization': 'Bearer ${tokens1.accessToken}',
+        }
+      );
+
+      if (response1.statusCode == 429) {
+        if (response1.headers['retry-after'] != null) {
+          retryAfter = int.parse(response1.headers['retry-after']!);
+        }
+        retryAfter = null;
+      }
+      if (response1.statusCode == 200) {
+        final Map<String, dynamic> json = jsonDecode(response.body);
+        return json['name'] as String;
+      } else {
+        return "";
+      }
+    }
+    return "";
+  }
+
+  Future<bool> isAlreadySaved(Track track) async {
+    // Get the access token from storage
+    final tokens = await AuthTokens.readFromStorage();
+    // If no tokens are found, return null
+    if (tokens == null) return false;
+
+    // use access token to get user profile
+    final response = await http.get(
+      Uri.parse('https://api.spotify.com/v1/me/tracks/contains?ids=${track.id}'),
+      headers: {
+        'Authorization': 'Bearer ${tokens.accessToken}',
+      },
+    );
+
+    if (response.statusCode == 429) {
+      if (response.headers['retry-after'] != null) {
+        retryAfter = int.parse(response.headers['retry-after']!);
+      }
+      retryAfter = null;
+    }
+    // if the access token is expired, refresh it and try again
+    if (response.statusCode == 200) {
+      retryAfter = null;
+      return json.decode(response.body)[0] as bool;
+    } 
+    else if (response.statusCode == 401) {
+      retryAfter = null;
+      AuthTokens.clearStorage();
+      await getAccessToken();
+      final tokens1 = await AuthTokens.readFromStorage();
+      if (tokens1 == null) return false;
+      final response1 = await http.get(
+      Uri.parse('https://api.spotify.com/v1/me/tracks/contains?ids=${track.id}'),
+      headers: {
+        'Authorization': 'Bearer ${tokens1.accessToken}',
+        }
+      );
+
+      if (response1.statusCode == 429) {
+        if (response1.headers['retry-after'] != null) {
+          retryAfter = int.parse(response1.headers['retry-after']!);
+        }
+        retryAfter = null;
+      }
+      if (response1.statusCode == 200) {
+        retryAfter = null;
+        return json.decode(response1.body)[0] as bool;
+      } else {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  Future<void> saveTrack(Track track) async {
+    // Get the access token from storage
+    final tokens = await AuthTokens.readFromStorage();
+    // If no tokens are found, return null
+    if (tokens == null) return;
+
+    // use access token to get user profile
+    final response = await http.put(
+      Uri.parse('https://api.spotify.com/v1/me/tracks?ids=${track.id}'),
+      headers: {
+        'Authorization': 'Bearer ${tokens.accessToken}',
+      },
+    );
+
+    if (response.statusCode == 429) {
+      if (response.headers['retry-after'] != null) {
+        retryAfter = int.parse(response.headers['retry-after']!);
+      }
+      retryAfter = null;
+    }
+    // if the access token is expired, refresh it and try again
+    if (response.statusCode == 200) {
+      retryAfter = null;
+      return;
+    } 
+    else if (response.statusCode == 401) {
+      retryAfter = null;
+      AuthTokens.clearStorage();
+      await getAccessToken();
+      final tokens1 = await AuthTokens.readFromStorage();
+      if (tokens1 == null) return;
+      final response1 = await http.put(
+      Uri.parse('https://api.spotify.com/v1/me/tracks?ids=${track.id}'),
+      headers: {
+        'Authorization': 'Bearer ${tokens1.accessToken}',
+        }
+      );
+
+      if (response1.statusCode == 429) {
+        if (response1.headers['retry-after'] != null) {
+          retryAfter = int.parse(response1.headers['retry-after']!);
+        }
+        retryAfter = null;
+      }
+      if (response1.statusCode == 200) {
+        retryAfter = null;
+        return;
+      } else {
+        return;
+      }
+    }
+    return;
+  }
 }
