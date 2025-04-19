@@ -915,4 +915,10 @@ class SpotifyAuthService {
     }
     return;
   }
+
+  void shuffleRecommendedTracks() {
+    final list = GlobalMusicData.instance.recommendedTracks.toList();
+    list.shuffle(Random());
+    GlobalMusicData.instance.recommendedTracks = list.toSet();
+  }
 }

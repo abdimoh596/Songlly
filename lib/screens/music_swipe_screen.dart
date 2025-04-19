@@ -3,6 +3,7 @@ import '../models/global_music_data.dart';
 import '../models/track.dart';
 import '../services/spotify_auth_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'home_screen.dart';
 
 class MusicSwipeScreen extends StatefulWidget {
   const MusicSwipeScreen({super.key});
@@ -50,7 +51,11 @@ class _MusicSwipeScreenState extends State<MusicSwipeScreen> {
         albumName = trackAlbum;
       });
     } else {
-      Navigator.pop(context); // Finished
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        (Route<dynamic> route) => false,
+      );
     }
   }
 
@@ -72,7 +77,6 @@ class _MusicSwipeScreenState extends State<MusicSwipeScreen> {
     final track = currentTrack!;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Song Recommendations')),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -100,17 +104,18 @@ class _MusicSwipeScreenState extends State<MusicSwipeScreen> {
                 Text(
                   track.name,
                   style: const TextStyle(
-                    fontSize: 25,
+                    fontSize: 30,
                     fontWeight: FontWeight.bold,
-                    color: Color.fromRGBO(255, 145, 36, 1.0),
+                    color: Color.fromRGBO(255, 130, 4, 1),
                   ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 10),
                 Text(albumName,
-                    style: const TextStyle(fontSize: 18, color: Color.fromRGBO(121, 16, 83, 1.0))),
+                    style: const TextStyle(fontSize: 20, color: Color.fromRGBO(121, 16, 83, 1.0)), textAlign: TextAlign.center, softWrap: true, maxLines: 2,),
+                const SizedBox(height: 5),
                 Text(artistNames.join(', '),
-                    style: const TextStyle(fontSize: 18, color: Color.fromRGBO(121, 16, 83, 1.0))),
+                    style: const TextStyle(fontSize: 25, color: Color.fromRGBO(121, 16, 83, 1.0)), textAlign: TextAlign.center, softWrap: true, maxLines: 2,),
                 const SizedBox(height: 40),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -119,30 +124,30 @@ class _MusicSwipeScreenState extends State<MusicSwipeScreen> {
                     GestureDetector(
                       onTap: () => _handleSwipe(false),
                       child: Container(
-                        height: 60,
-                        width: 60,
+                        height: 80,
+                        width: 80,
                         decoration: const BoxDecoration(
-                          color: Colors.red,
+                          color: Color.fromRGBO(121, 16, 83, 1.0),
                           shape: BoxShape.circle,
                         ),
                         child: const Center(
-                          child: Icon(Icons.close, color: Colors.white, size: 30),
+                          child: Icon(Icons.close, color: Colors.white, size: 45),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 50),
+                    const SizedBox(width: 70),
                     // Check Button
                     GestureDetector(
                       onTap: () => _handleSwipe(true),
                       child: Container(
-                        height: 60,
-                        width: 60,
+                        height: 80,
+                        width: 80,
                         decoration: const BoxDecoration(
-                          color: Colors.green,
+                          color: Color.fromRGBO(255, 130, 4, 1),
                           shape: BoxShape.circle,
                         ),
                         child: const Center(
-                          child: Icon(Icons.check, color: Colors.white, size: 30),
+                          child: Icon(Icons.check, color: Colors.white, size: 45),
                         ),
                       ),
                     ),

@@ -73,14 +73,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           });
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Color.fromRGBO(255, 145, 36, 1.0),
+                          backgroundColor: Color.fromRGBO(255, 162, 69, 1),
                           foregroundColor: Color.fromRGBO(121, 16, 83, 1.0),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                           ),
                           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                         ),
-                        child: const Text('Setup 1', style: TextStyle(fontSize: 18)),
+                        child: const Text('Setup 1', style: TextStyle(fontSize: 20)),
                       ),
                     if (setup1Completed && userDisplayName != null) ...[
                       const SizedBox(height: 15),
@@ -93,6 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
+                    if (!setup2Completed)
                       ElevatedButton(
                         onPressed: () async {
                           setState(() => isLoading = true);
@@ -110,13 +111,24 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                         ),
-                        child: const Text('Setup 2', style: TextStyle(fontSize: 18)),
+                        child: const Text('Setup 2', style: TextStyle(fontSize: 20)),
+                      ),
+                    if (setup2Completed) ...[
+                      const SizedBox(height: 15),
+                      Text(
+                        'Setup Complete!',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: Color.fromRGBO(121, 16, 83, 1.0),
+                        ),
                       ),
                     ],
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: (setup1Completed && setup2Completed)
                           ? () {
+                            spotifyAuth.shuffleRecommendedTracks();
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -126,16 +138,17 @@ class _HomeScreenState extends State<HomeScreen> {
                             }
                           : null,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.greenAccent,
-                        foregroundColor: Colors.black,
+                        backgroundColor: Color.fromRGBO(255, 132, 9, 1),
+                        foregroundColor: Color.fromRGBO(121, 16, 83, 1.0),
                         disabledBackgroundColor: Colors.grey[400],
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                       ),
-                      child: const Text('Recommend', style: TextStyle(fontSize: 18)),
+                      child: const Text('Recommend', style: TextStyle(fontSize: 20)),
                     ),
+                  ],
                   ],
                 ),
         ),
