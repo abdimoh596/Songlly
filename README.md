@@ -20,7 +20,10 @@
 
 ## 📸 Screenshots
 
-
+<img width="299" alt="Screenshot 2025-04-25 214937" src="https://github.com/user-attachments/assets/259af036-231e-4c3c-aaeb-759753658b43" />
+<img width="298" alt="Screenshot 2025-04-25 215331" src="https://github.com/user-attachments/assets/49bd3348-088c-4e94-9403-bc0ce0dcd3f8" />
+<img width="298" alt="Screenshot 2025-04-25 215007" src="https://github.com/user-attachments/assets/d7b7270f-c68f-4936-a798-21db657eba89" />
+<img width="299" alt="Screenshot 2025-04-25 215248" src="https://github.com/user-attachments/assets/cb432354-6bf6-4ae0-946f-1a6f02ef5d3e" />
 
 ---
 
