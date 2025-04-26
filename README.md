@@ -18,6 +18,12 @@
 
 ---
 
+## 🎥 Demo Video
+
+- https://youtube.com/shorts/KjQzz_Ne67U?feature=share
+
+---
+
 ## 📸 Screenshots
 
 <img width="299" alt="Screenshot 2025-04-25 214937" src="https://github.com/user-attachments/assets/259af036-231e-4c3c-aaeb-759753658b43" />
