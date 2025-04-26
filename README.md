@@ -1,3 +1,9 @@
+# Welcome to Songly
+
+I love music. I love listening to music, making music, and discovering new music. I am also very passionate about building software and wanted to explore what it is like to build a phone app. Introducing Songly, my first phone app, helps users discover new music based on their listening habits. I hope you enjoy, keep reading to learn more!
+
+---
+
 # 🎵 Songly – Tinder for Songs
 
 **Songly** is a cross-platform Flutter app that helps users discover new music by swiping through Spotify tracks, just like Tinder! Connect your Spotify account, set your preferences, and swipe left to skip or right to like — all liked tracks are automatically added to your Spotify library.
