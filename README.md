@@ -82,8 +82,8 @@ While currently rule-based, the system is designed to evolve into a machine lear
   
   ⚙️ **Setup Steps**
     - Clone the Repo:
-      - git clone https://github.com/your-username/songly.git
-      - cd songly
+      - git clone https://github.com/abdimoh596/songlly.git
+      - cd songlly
       - flutter pub get
   
   **Run on Device or Emulator:**
