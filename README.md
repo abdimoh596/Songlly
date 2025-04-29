@@ -46,6 +46,7 @@ I love music. I love listening to music, making music, and discovering new music
 - **Node.js + Express** (Custom backend for preview audio)
 - **Cheerio + Axios** for HTML scraping
 - **Render** for backend hosting
+- **Custom REST API** checkout this repo for the custom spotify web audio preview scrape API: https://github.com/abdimoh596/spotify_preview_api 
 
 ---
 
